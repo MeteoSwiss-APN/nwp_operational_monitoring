@@ -28,12 +28,6 @@ Suite("test",
             Trigger("t2<flag>late")
         ),
 
-        Task(
-            "check_meter",
-            Trigger("t1 == active")
-        )
-
-
     ),
 
     Edit(
