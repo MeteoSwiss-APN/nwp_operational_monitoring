@@ -1,0 +1,49 @@
+
+%include <head.h>
+
+set +e
+set +u
+
+echo "monitor started for t2"
+# --- LEVEL 1: WARNING ---
+TASK_PATH="/test/main/t2"
+
+curl -X POST \
+    -H "Authorization: Bearer $GRAFANA_TOKEN" \
+    -H "Content-Type: text/plain" \
+    "$GRAFANA_URL" \
+    -d "ecflow_task_alert,task=task,suite=test,severity=warning value=1"
+
+
+
+# --- LEVEL 2: CRITICAL ---
+
+while true; do
+
+    sleep 60
+
+    STATUS=$(ecflow_client --get_state "$TASK_PATH" | grep -o "state:[^ ]*" | cut -d: -f2)
+
+    echo "current status: $STATUS"
+
+    if [[ "$STATUS" == "active" ]]; then
+
+        echo "task still active -> sending critical"
+
+        curl -X POST \
+            -H "Authorization: Bearer $GRAFANA_TOKEN" \
+            -H "Content-Type: text/plain" \
+            "$GRAFANA_URL" \
+            -d "ecflow_task_alert,task=t2,suite=test,severity=critical value=2"
+
+        echo "critical alert sent"
+
+    else
+
+        echo "task no longer active -> stopping monitor"
+        break
+
+    fi
+done
+
+ecflow_client --complete
