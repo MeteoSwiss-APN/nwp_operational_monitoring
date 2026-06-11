@@ -29,3 +29,8 @@ ecflow_client --delete=yes /test
 ecflow_client --load=test.def
 ecflow_client --begin=/test
 ```
+
+The following metrics wil be sent automatically to Grafana:
+- Task duration (s)
+- Delay status (1=task late; 2=task very late)
+- in case of failure, 1=task failed
