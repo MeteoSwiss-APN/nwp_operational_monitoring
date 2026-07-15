@@ -77,9 +77,10 @@ node_state_from_info () {
 }
 
 # Return all node info: name, type, state
+# Extracts node names from 'scontrol show nodes' block headers (one block per node,
+# no partition duplicates unlike sinfo -N)
 nodes_info () {
-    all_nodes=$(sinfo -N -o "%N" | grep -v NODELIST | sort -u)
-    for node in $all_nodes; do
+    scontrol show nodes | grep "^NodeName=" | awk '{print $1}' | cut -d= -f2 | sort -u | while read -r node; do
         info=$(scontrol show node="$node")
         type=$(node_type_from_info "$info")
         state=$(node_state_from_info "$info")
@@ -101,7 +102,7 @@ is_unhealthy() {
     fi
 
     # Otherwise check for unhealthy states
-    [[ "$state" =~ DOWN|DRAIN|DRAINED|FAIL|MAINT|UNK|NOT_RESPONDING ]]
+    [[ "$state" =~ DOWN|DRAIN|DRAINING|DRAINED|FAIL|FAILING|MAINT|MAINTENANCE|UNK|UNKNOWN|NOT_RESPONDING ]]
 }
 
 # ---------- Option Parsing ----------
@@ -161,7 +162,7 @@ while read -r node type state; do
     # up=0 → healthy, up=1 → unhealthy
     up=0
     is_unhealthy "$state" "$node" && up=1
-    line="slurm_node_status,host=${host_name},node=${node},type=${type},state=${state},health=${up} up=${up}i ${timestamp_ns}"
+    line="slurm_node_status,host=${host_name},node=${node},type=${type} state=\"${state}\",up=${up}i ${timestamp_ns}"
     if [[ -z "$grafana_payload" ]]; then
         grafana_payload="$line"
     else
