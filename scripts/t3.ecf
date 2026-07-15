@@ -1,0 +1,7 @@
+%include <head.h>
+
+echo "running t3"
+
+sleep 30
+
+%include <tail.h>
