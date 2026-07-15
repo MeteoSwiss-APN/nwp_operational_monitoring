@@ -114,18 +114,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check ecFlow server status and push metric to Grafana Cloud."
     )
-    parser.add_argument("--host", default=os.environ.get("ECF_HOST"),
-                        help="ecFlow server host (or set $ECF_HOST)")
-    parser.add_argument("--port", default=os.environ.get("ECF_PORT"),
-                        help="ecFlow server port (or set $ECF_PORT)")
+    parser.add_argument("--host", default=os.environ.get("ECF_HOST", "balfrin-ln003"),
+                        help="ecFlow server host (default: $ECF_HOST or balfrin-ln003)")
+    parser.add_argument("--port", default=os.environ.get("ECF_PORT", "32461"),
+                        help="ecFlow server port (default: $ECF_PORT or 32461)")
     args = parser.parse_args()
-
-    if not args.host:
-        print("[ERROR] ecFlow host not specified. Use --host or set $ECF_HOST.", file=sys.stderr)
-        return 1
-    if not args.port:
-        print("[ERROR] ecFlow port not specified. Use --port or set $ECF_PORT.", file=sys.stderr)
-        return 1
 
     is_running = ping_ecflow(args.host, args.port)
 
